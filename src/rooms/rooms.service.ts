@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { ConflictException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { RoomEntity } from "./entities/room.entity";
 import { Repository } from "typeorm";
@@ -11,20 +11,19 @@ export class RoomsService {
     private readonly roomRepository: Repository<RoomEntity>,
   ) {}
   async createRoom(createRoomDto: CreateRoomDto): Promise<RoomEntity> {
-    const room = await this.roomRepository.findOneBy({
-      id: createRoomDto.roomId,
+    const existsroom = await this.roomRepository.findOneBy({
+      name: createRoomDto.name,
     });
 
-    if (!room) {
-      throw new NotFoundException(
-        `Room with id ${createRoomDto.roomId} was not found`,
+    if (!existsroom) {
+      throw new ConflictException(
+        `Room with name ${createRoomDto.name} already exists`,
       );
     }
 
     const room = this.roomRepository.create({
       name: createRoomDto.name,
       capacity: createRoomDto.capacity,
-      room,
     });
 
     return this.roomRepository.save(room);
